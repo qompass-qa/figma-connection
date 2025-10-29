@@ -32,17 +32,18 @@ app.post('/api/connect', async (req, res) => {
     });
   }
   
+  if (!teamId) {
+    return res.status(400).json({ 
+      error: 'Team ID is required',
+      success: false 
+    });
+  }
+  
   try {
     const figma = new FigmaAPI(token);
     
-    let projects;
-    if (teamId) {
-      // Get projects for specific team ID
-      projects = await figma.getProjectsWithTeamId(teamId);
-    } else {
-      // Try to get all projects (will show limitation message)
-      projects = await figma.getAllProjects();
-    }
+    // Get projects for specific team ID with thumbnails
+    const projects = await figma.getProjectsWithTeamId(teamId);
     
     res.json({
       success: true,

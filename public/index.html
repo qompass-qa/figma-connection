@@ -197,9 +197,10 @@
         .project-card {
             border: 2px solid #e1e5e9;
             border-radius: 12px;
-            padding: 20px;
+            overflow: hidden;
             cursor: pointer;
             transition: all 0.3s ease;
+            background: white;
         }
 
         .project-card:hover {
@@ -213,14 +214,59 @@
             background: #fff5f4;
         }
 
+        .project-thumbnail {
+            width: 100%;
+            height: 200px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .project-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .project-thumbnail.no-image {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #64748b;
+            font-size: 3rem;
+        }
+
+        .project-info {
+            padding: 20px;
+        }
+
         .project-card h4 {
             color: #333;
             margin-bottom: 8px;
+            font-size: 1.1rem;
         }
 
         .project-card p {
             color: #666;
             font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .project-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .file-count {
+            color: #64748b;
+            font-size: 0.8rem;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
         }
 
         .team-section {
@@ -323,11 +369,12 @@
                         >
                     </div>
                     <div class="input-group">
-                        <label for="teamId">Team ID</label>
+                        <label for="teamId">Team ID *</label>
                         <input 
                             type="text" 
                             id="teamId" 
                             placeholder="e.g., 1234567890 (get from your team URL)"
+                            required
                         >
                         <small style="color: #666; font-size: 0.8rem; margin-top: 4px; display: block;">
                             💡 Go to your team page in Figma and copy the number from the URL: figma.com/team/<strong>123456</strong>/TeamName
@@ -419,20 +466,20 @@
                 return;
             }
 
+            if (!teamId) {
+                alert('Please enter your Team ID');
+                return;
+            }
+
             showLoading(true);
 
             try {
-                const requestBody = { token };
-                if (teamId) {
-                    requestBody.teamId = teamId;
-                }
-
                 const response = await fetch('/api/connect', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(requestBody)
+                    body: JSON.stringify({ token, teamId })
                 });
 
                 const result = await response.json();
@@ -493,16 +540,29 @@
                     html += `<p style="color: #666; margin-bottom: 20px;">Team ID: ${userData.teamId}</p>`;
                 }
                 
+                let projectsHtml = '';
                 userData.projects.forEach(project => {
-                    html += `
+                    const thumbnailHtml = project.thumbnail 
+                        ? `<img src="${project.thumbnail}" alt="${project.name} thumbnail" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>🎨</div>'">`
+                        : '<div class="no-image">🎨</div>';
+                    
+                    projectsHtml += `
                         <div class="project-card" onclick="selectProject('${project.id}', '${project.name}')">
-                            <h4>${project.name}</h4>
-                            <p>Project ID: ${project.id}</p>
+                            <div class="project-thumbnail">
+                                ${thumbnailHtml}
+                            </div>
+                            <div class="project-info">
+                                <h4>${project.name}</h4>
+                                <p>Project ID: ${project.id}</p>
+                                <div class="project-meta">
+                                    <span class="file-count">📁 ${project.fileCount || 0} files</span>
+                                </div>
+                            </div>
                         </div>
                     `;
                 });
                 
-                projectsContainer.innerHTML = `<div class="projects-grid">${html}</div>`;
+                projectsContainer.innerHTML = html + `<div class="projects-grid">${projectsHtml}</div>`;
             } else if (userData.teams && userData.teams.length > 0) {
                 // Handle OAuth format (teams with projects)
                 let html = '<h2 style="color: #333; margin-bottom: 20px;">Your Teams & Projects</h2>';

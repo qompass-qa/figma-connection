@@ -184,14 +184,91 @@ class FigmaAPI {
   }
 
   /**
-   * Get projects for a specific team ID (simple method for personal tokens)
+   * Get files in a project
+   * @param {string} projectId - The project ID
+   * @returns {Promise} - Project files data
+   */
+  async getProjectFiles(projectId) {
+    try {
+      const response = await axios.get(`${this.baseURL}/projects/${projectId}/files`, {
+        headers: this.headers
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch project files: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Get thumbnail for a file
+   * @param {string} fileKey - The file key
+   * @returns {Promise} - Thumbnail data
+   */
+  async getFileThumbnail(fileKey) {
+    try {
+      const response = await axios.get(`${this.baseURL}/images/${fileKey}`, {
+        headers: this.headers,
+        params: {
+          format: 'png',
+          scale: '0.5' // Smaller scale for thumbnails
+        }
+      });
+      return response.data;
+    } catch (error) {
+      // Don't throw error for thumbnails, just return null
+      console.warn(`Failed to get thumbnail for ${fileKey}: ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Get projects for a specific team ID with thumbnails
    * @param {string} teamId - The team ID from your Figma URL
-   * @returns {Promise} - Formatted projects data
+   * @returns {Promise} - Formatted projects data with thumbnails
    */
   async getProjectsWithTeamId(teamId) {
     try {
       const userInfo = await this.getMe();
       const teamProjects = await this.getTeamProjects(teamId);
+      
+      // Enhance projects with thumbnails
+      const enhancedProjects = await Promise.all(
+        (teamProjects.projects || []).map(async (project) => {
+          try {
+            // Get files in this project
+            const projectFiles = await this.getProjectFiles(project.id);
+            
+            // Get thumbnail from the first file if available
+            let thumbnail = null;
+            if (projectFiles.files && projectFiles.files.length > 0) {
+              const firstFile = projectFiles.files[0];
+              const thumbnailData = await this.getFileThumbnail(firstFile.key);
+              if (thumbnailData && thumbnailData.images) {
+                // Get the first thumbnail URL
+                const thumbnailUrls = Object.values(thumbnailData.images);
+                if (thumbnailUrls.length > 0) {
+                  thumbnail = thumbnailUrls[0];
+                }
+              }
+            }
+            
+            return {
+              ...project,
+              thumbnail: thumbnail,
+              fileCount: projectFiles.files ? projectFiles.files.length : 0,
+              files: projectFiles.files || []
+            };
+          } catch (error) {
+            console.warn(`Could not enhance project ${project.name}: ${error.message}`);
+            return {
+              ...project,
+              thumbnail: null,
+              fileCount: 0,
+              files: []
+            };
+          }
+        })
+      );
       
       return {
         user: {
@@ -201,7 +278,7 @@ class FigmaAPI {
           img_url: userInfo.img_url
         },
         teamId: teamId,
-        projects: teamProjects.projects || [],
+        projects: enhancedProjects,
         method: 'team-id',
         success: true
       };
