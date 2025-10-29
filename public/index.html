@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Figma Projects Browser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #f24e1e, #ff7262);
+            padding: 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .auth-section {
+            margin-bottom: 40px;
+        }
+
+        .auth-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .auth-method {
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .auth-method:hover {
+            border-color: #f24e1e;
+            transform: translateY(-2px);
+        }
+
+        .auth-method.active {
+            border-color: #f24e1e;
+            background: #fff5f4;
+        }
+
+        .auth-method h3 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .auth-method p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .auth-method .pros {
+            color: #10b981;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+        }
+
+        .auth-method .cons {
+            color: #ef4444;
+            font-size: 0.8rem;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #f24e1e;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #f24e1e, #ff7262);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(242, 78, 30, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6366f1;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #f24e1e;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .projects-section {
+            display: none;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .project-card {
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .project-card:hover {
+            border-color: #f24e1e;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .project-card.selected {
+            border-color: #f24e1e;
+            background: #fff5f4;
+        }
+
+        .project-card h4 {
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .project-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .team-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+
+        .team-section h3 {
+            color: #333;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .limitation-notice {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .limitation-notice h4 {
+            color: #92400e;
+            margin-bottom: 8px;
+        }
+
+        .limitation-notice p {
+            color: #78350f;
+            margin-bottom: 12px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #f0f9ff;
+            border-radius: 8px;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 768px) {
+            .auth-methods {
+                grid-template-columns: 1fr;
+            }
+            
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Figma Projects</h1>
+            <p>Connect to your Figma account and browse your projects</p>
+        </div>
+
+        <div class="content">
+            <!-- Authentication Section -->
+            <div class="auth-section" id="authSection">
+                <h2 style="margin-bottom: 24px; color: #333;">Choose Authentication Method</h2>
+                
+                <div class="auth-methods">
+                    <div class="auth-method" id="personalTokenMethod" onclick="selectAuthMethod('personal')">
+                        <h3>🔑 Personal Access Token</h3>
+                        <p>Use your personal token for quick access</p>
+                        <div class="pros">✅ Quick and simple</div>
+                        <div class="cons">❌ Limited to accessible files only</div>
+                    </div>
+                    
+                    <div class="auth-method" id="oauthMethod" onclick="selectAuthMethod('oauth')">
+                        <h3>🚀 OAuth Login</h3>
+                        <p>Full access to all your teams and projects</p>
+                        <div class="pros">✅ Complete project browsing</div>
+                        <div class="pros">✅ Team access</div>
+                    </div>
+                </div>
+
+                <!-- Personal Token Input -->
+                <div id="tokenInput" style="display: none;">
+                    <div class="input-group">
+                        <label for="figmaToken">Figma Access Token</label>
+                        <input 
+                            type="password" 
+                            id="figmaToken" 
+                            placeholder="Paste your Figma access token here..."
+                            value=""
+                        >
+                    </div>
+                    <button class="btn btn-primary" onclick="connectWithToken()">
+                        Connect to Figma
+                    </button>
+                </div>
+
+                <!-- OAuth Button -->
+                <div id="oauthButton" style="display: none; text-align: center;">
+                    <a href="/auth/figma" class="btn btn-secondary">
+                        🔐 Login with Figma OAuth
+                    </a>
+                    <p style="margin-top: 12px; color: #666; font-size: 0.9rem;">
+                        You'll be redirected to Figma to authorize access
+                    </p>
+                </div>
+            </div>
+
+            <!-- Loading Section -->
+            <div class="loading" id="loadingSection">
+                <div class="spinner"></div>
+                <p>Connecting to Figma...</p>
+            </div>
+
+            <!-- Projects Section -->
+            <div class="projects-section" id="projectsSection">
+                <div id="userInfo"></div>
+                <div id="limitationNotice"></div>
+                <div id="projectsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedAuthMethod = null;
+        let selectedProject = null;
+        let userData = null;
+
+        // Check for OAuth callback on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const oauthSuccess = urlParams.get('oauth_success');
+            const data = urlParams.get('data');
+            const error = urlParams.get('error');
+
+            if (error) {
+                alert(`Authentication error: ${decodeURIComponent(error)}`);
+                return;
+            }
+
+            if (oauthSuccess && data) {
+                try {
+                    const result = JSON.parse(decodeURIComponent(data));
+                    displayProjects(result);
+                    // Clean URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (e) {
+                    console.error('Failed to parse OAuth data:', e);
+                }
+            }
+        });
+
+        function selectAuthMethod(method) {
+            selectedAuthMethod = method;
+            
+            // Update UI
+            document.querySelectorAll('.auth-method').forEach(el => el.classList.remove('active'));
+            document.getElementById('tokenInput').style.display = 'none';
+            document.getElementById('oauthButton').style.display = 'none';
+            
+            if (method === 'personal') {
+                document.getElementById('personalTokenMethod').classList.add('active');
+                document.getElementById('tokenInput').style.display = 'block';
+            } else if (method === 'oauth') {
+                document.getElementById('oauthMethod').classList.add('active');
+                document.getElementById('oauthButton').style.display = 'block';
+            }
+        }
+
+        async function connectWithToken() {
+            const token = document.getElementById('figmaToken').value.trim();
+            
+            if (!token) {
+                alert('Please enter your Figma access token');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const response = await fetch('/api/connect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayProjects(result);
+                } else {
+                    throw new Error(result.error || 'Failed to connect to Figma');
+                }
+            } catch (error) {
+                console.error('Connection error:', error);
+                alert(`Failed to connect: ${error.message}`);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayProjects(result) {
+            userData = result.data;
+            
+            // Hide auth section and show projects
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('projectsSection').style.display = 'block';
+
+            // Display user info
+            const userInfo = document.getElementById('userInfo');
+            userInfo.innerHTML = `
+                <div class="user-info">
+                    <img src="${userData.user.img_url}" alt="Profile" class="user-avatar" onerror="this.style.display='none'">
+                    <div>
+                        <h3>${userData.user.handle || userData.user.email}</h3>
+                        <p>Connected via ${result.tokenType === 'oauth' ? 'OAuth' : 'Personal Token'}</p>
+                    </div>
+                </div>
+            `;
+
+            // Show limitation notice for personal tokens
+            const limitationNotice = document.getElementById('limitationNotice');
+            if (userData.limitation) {
+                limitationNotice.innerHTML = `
+                    <div class="limitation-notice">
+                        <h4>${userData.limitation.title}</h4>
+                        <p>${userData.limitation.message}</p>
+                        <p><strong>Solution:</strong> ${userData.limitation.solution}</p>
+                    </div>
+                `;
+            } else {
+                limitationNotice.innerHTML = '';
+            }
+
+            // Display projects
+            const projectsContainer = document.getElementById('projectsContainer');
+            
+            if (userData.teams && userData.teams.length > 0) {
+                let html = '<h2 style="color: #333; margin-bottom: 20px;">Your Teams & Projects</h2>';
+                
+                userData.teams.forEach(team => {
+                    html += `
+                        <div class="team-section">
+                            <h3>👥 ${team.teamName}</h3>
+                            <div class="projects-grid">
+                    `;
+                    
+                    team.projects.forEach(project => {
+                        html += `
+                            <div class="project-card" onclick="selectProject('${project.id}', '${project.name}')">
+                                <h4>${project.name}</h4>
+                                <p>Project ID: ${project.id}</p>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                projectsContainer.innerHTML = html;
+            } else {
+                projectsContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h3>No projects found</h3>
+                        <p>This could be due to API limitations with personal tokens.</p>
+                        ${userData.limitation ? '<p>Try using OAuth authentication for full access.</p>' : ''}
+                    </div>
+                `;
+            }
+        }
+
+        function selectProject(projectId, projectName) {
+            // Remove previous selection
+            document.querySelectorAll('.project-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Mark new selection
+            event.target.closest('.project-card').classList.add('selected');
+            
+            selectedProject = { id: projectId, name: projectName };
+            
+            // You can add more functionality here, like showing project details
+            console.log('Selected project:', selectedProject);
+            alert(`Selected project: ${projectName}\nProject ID: ${projectId}`);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingSection').style.display = show ? 'block' : 'none';
+            document.getElementById('authSection').style.display = show ? 'none' : 'block';
+        }
+    </script>
+</body>
+</html>
