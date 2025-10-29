@@ -214,28 +214,6 @@
             background: #fff5f4;
         }
 
-        .project-thumbnail {
-            width: 100%;
-            height: 200px;
-            background: #f8fafc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .project-thumbnail img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .project-thumbnail.no-image {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            color: #64748b;
-            font-size: 3rem;
-        }
-
         .project-info {
             padding: 20px;
         }
@@ -267,6 +245,184 @@
             background: #f1f5f9;
             padding: 4px 8px;
             border-radius: 4px;
+        }
+
+        .frames-section {
+            display: none;
+            margin-top: 40px;
+            border-top: 2px solid #e2e8f0;
+            padding-top: 40px;
+        }
+
+        .frames-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .back-button {
+            background: #64748b;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #475569;
+            transform: translateY(-1px);
+        }
+
+        .frames-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .frame-card {
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 16px;
+            background: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .frame-card:hover {
+            border-color: #f24e1e;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .frame-card.selected {
+            border-color: #f24e1e;
+            background: #fff5f4;
+        }
+
+        .files-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .files-summary h4 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .file-frames {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .frames-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .frame-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .frame-icon {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .frame-info h4 {
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+
+        .frame-info p {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 2px;
+        }
+
+        .frame-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .frame-tag {
+            background: #f1f5f9;
+            color: #64748b;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .files-summary {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .files-summary h4 {
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-name {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .file-frames {
+            color: #64748b;
+            font-size: 0.85rem;
         }
 
         .team-section {
@@ -407,6 +563,22 @@
                 <div id="userInfo"></div>
                 <div id="limitationNotice"></div>
                 <div id="projectsContainer"></div>
+                
+                <!-- Frames Section -->
+                <div class="frames-section" id="framesSection">
+                    <div class="frames-header">
+                        <div>
+                            <h2 id="selectedProjectName" style="color: #333; margin-bottom: 8px;"></h2>
+                            <p id="selectedProjectInfo" style="color: #666;"></p>
+                        </div>
+                        <button class="back-button" onclick="backToProjects()">
+                            ← Back to Projects
+                        </button>
+                    </div>
+                    
+                    <div id="filesSummary"></div>
+                    <div id="framesContainer"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -415,6 +587,7 @@
         let selectedAuthMethod = null;
         let selectedProject = null;
         let userData = null;
+        let currentToken = null;
 
         // Check for OAuth callback on page load
         window.addEventListener('DOMContentLoaded', () => {
@@ -485,6 +658,7 @@
                 const result = await response.json();
                 
                 if (result.success) {
+                    currentToken = token; // Store token for frame requests
                     displayProjects(result);
                 } else {
                     throw new Error(result.error || 'Failed to connect to Figma');
@@ -544,9 +718,6 @@
                 userData.projects.forEach(project => {
                     projectsHtml += `
                         <div class="project-card" onclick="selectProject('${project.id}', '${project.name}')">
-                            <div class="project-thumbnail">
-                                <div class="no-image">🎨</div>
-                            </div>
                             <div class="project-info">
                                 <h4>${project.name}</h4>
                                 <p>Project ID: ${project.id}</p>
@@ -597,7 +768,7 @@
             }
         }
 
-        function selectProject(projectId, projectName) {
+        async function selectProject(projectId, projectName) {
             // Remove previous selection
             document.querySelectorAll('.project-card').forEach(card => {
                 card.classList.remove('selected');
@@ -608,9 +779,142 @@
             
             selectedProject = { id: projectId, name: projectName };
             
-            // You can add more functionality here, like showing project details
-            console.log('Selected project:', selectedProject);
-            alert(`Selected project: ${projectName}\nProject ID: ${projectId}`);
+            // Load frames for this project
+            await loadProjectFrames(projectId, projectName);
+        }
+
+        async function loadProjectFrames(projectId, projectName) {
+            if (!currentToken) {
+                alert('Please reconnect to Figma');
+                return;
+            }
+
+            showLoading(true);
+            document.querySelector('#loadingSection p').textContent = `Loading frames from ${projectName}...`;
+
+            try {
+                const response = await fetch('/api/project-frames', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        token: currentToken, 
+                        projectId: projectId 
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayFrames(result.data, projectName);
+                } else {
+                    throw new Error(result.error || 'Failed to load project frames');
+                }
+            } catch (error) {
+                console.error('Frames loading error:', error);
+                alert(`Failed to load frames: ${error.message}`);
+            } finally {
+                showLoading(false);
+                document.querySelector('#loadingSection p').textContent = 'Connecting to Figma...';
+            }
+        }
+
+        function displayFrames(framesData, projectName) {
+            // Hide projects and show frames
+            document.getElementById('projectsContainer').style.display = 'none';
+            document.getElementById('framesSection').style.display = 'block';
+
+            // Update header
+            document.getElementById('selectedProjectName').textContent = projectName;
+            document.getElementById('selectedProjectInfo').textContent = 
+                `${framesData.totalFrames} frames across ${framesData.files.length} files`;
+
+            // Display files summary
+            const filesSummary = document.getElementById('filesSummary');
+            if (framesData.files.length > 0) {
+                let filesHtml = '<h4>📁 Files in this project:</h4>';
+                framesData.files.forEach(file => {
+                    const status = file.error ? '❌' : '✅';
+                    const frameText = file.frameCount === 1 ? 'frame' : 'frames';
+                    filesHtml += `
+                        <div class="file-item">
+                            <span class="file-name">${status} ${file.name}</span>
+                            <span class="file-frames">${file.frameCount} ${frameText}</span>
+                        </div>
+                    `;
+                });
+                filesSummary.innerHTML = `<div class="files-summary">${filesHtml}</div>`;
+            } else {
+                filesSummary.innerHTML = `
+                    <div class="files-summary">
+                        <p style="color: #666;">No files found in this project.</p>
+                    </div>
+                `;
+            }
+
+            // Display frames
+            const framesContainer = document.getElementById('framesContainer');
+            if (framesData.frames.length > 0) {
+                let framesHtml = '<h3 style="color: #333; margin-bottom: 20px;">🎨 Frames</h3><div class="frames-grid">';
+                
+                framesData.frames.forEach(frame => {
+                    const width = frame.absoluteBoundingBox ? Math.round(frame.absoluteBoundingBox.width) : '?';
+                    const height = frame.absoluteBoundingBox ? Math.round(frame.absoluteBoundingBox.height) : '?';
+                    
+                    framesHtml += `
+                        <div class="frame-card" onclick="selectFrame('${frame.id}', '${frame.name}')">
+                            <div class="frame-header">
+                                <div class="frame-icon">🖼️</div>
+                                <div class="frame-info">
+                                    <h4>${frame.name}</h4>
+                                    <p>From: ${frame.fileName}</p>
+                                    <p>Size: ${width} × ${height}px</p>
+                                </div>
+                            </div>
+                            <div class="frame-meta">
+                                <span class="frame-tag">Frame</span>
+                                <span class="frame-tag">${frame.children || 0} children</span>
+                                ${frame.layoutMode ? `<span class="frame-tag">${frame.layoutMode}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                framesHtml += '</div>';
+                framesContainer.innerHTML = framesHtml;
+            } else {
+                framesContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h3>No frames found</h3>
+                        <p>This project doesn't contain any frames, or they couldn't be loaded.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function selectFrame(frameId, frameName) {
+            // Remove previous selection
+            document.querySelectorAll('.frame-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Mark new selection
+            event.target.closest('.frame-card').classList.add('selected');
+            
+            console.log('Selected frame:', { id: frameId, name: frameName });
+            alert(`Selected frame: ${frameName}\nFrame ID: ${frameId}`);
+        }
+
+        function backToProjects() {
+            // Hide frames and show projects
+            document.getElementById('framesSection').style.display = 'none';
+            document.getElementById('projectsContainer').style.display = 'block';
+            
+            // Clear frame selection
+            document.querySelectorAll('.frame-card').forEach(card => {
+                card.classList.remove('selected');
+            });
         }
 
         function showLoading(show) {

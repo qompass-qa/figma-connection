@@ -59,6 +59,43 @@ app.post('/api/connect', async (req, res) => {
   }
 });
 
+// Get frames for a specific project
+app.post('/api/project-frames', async (req, res) => {
+  const { token, projectId } = req.body;
+  
+  if (!token) {
+    return res.status(400).json({ 
+      error: 'Token is required',
+      success: false 
+    });
+  }
+  
+  if (!projectId) {
+    return res.status(400).json({ 
+      error: 'Project ID is required',
+      success: false 
+    });
+  }
+  
+  try {
+    const figma = new FigmaAPI(token);
+    
+    // Get all frames from the project
+    const projectFrames = await figma.getProjectFrames(projectId);
+    
+    res.json({
+      success: true,
+      data: projectFrames
+    });
+  } catch (error) {
+    console.error('Project Frames API Error:', error.message);
+    res.status(500).json({ 
+      error: error.message,
+      success: false 
+    });
+  }
+});
+
 // OAuth authorization initiation
 app.get('/auth/figma', (req, res) => {
   const state = Math.random().toString(36).substring(7);

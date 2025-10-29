@@ -237,6 +237,102 @@ class FigmaAPI {
   }
 
   /**
+   * Get frames from all files in a project
+   * @param {string} projectId - The project ID
+   * @returns {Promise} - All frames from project files
+   */
+  async getProjectFrames(projectId) {
+    try {
+      // Get all files in the project
+      const projectFiles = await this.getProjectFiles(projectId);
+      
+      if (!projectFiles.files || projectFiles.files.length === 0) {
+        return {
+          projectId: projectId,
+          files: [],
+          frames: [],
+          totalFrames: 0
+        };
+      }
+
+      console.log(`Getting frames from ${projectFiles.files.length} files in project ${projectId}...`);
+      
+      const filesWithFrames = [];
+      let totalFrames = 0;
+
+      // Process files in batches to avoid rate limiting
+      const batchSize = 3;
+      for (let i = 0; i < projectFiles.files.length; i += batchSize) {
+        const batch = projectFiles.files.slice(i, i + batchSize);
+        
+        const batchResults = await Promise.all(
+          batch.map(async (file, index) => {
+            try {
+              // Add delay between files
+              await this.sleep(index * 150);
+              
+              // Get file data with frames
+              const fileData = await this.getFile(file.key);
+              const frames = this.extractFrames(fileData);
+              
+              totalFrames += frames.length;
+              
+              return {
+                key: file.key,
+                name: file.name,
+                lastModified: file.last_modified,
+                thumbnailUrl: file.thumbnail_url,
+                frames: frames,
+                frameCount: frames.length
+              };
+            } catch (error) {
+              console.warn(`Could not get frames from file ${file.name}: ${error.message}`);
+              return {
+                key: file.key,
+                name: file.name,
+                lastModified: file.last_modified,
+                thumbnailUrl: file.thumbnail_url,
+                frames: [],
+                frameCount: 0,
+                error: error.message
+              };
+            }
+          })
+        );
+        
+        filesWithFrames.push(...batchResults);
+        
+        // Add delay between batches
+        if (i + batchSize < projectFiles.files.length) {
+          await this.sleep(400);
+        }
+      }
+
+      // Flatten all frames with file context
+      const allFrames = [];
+      filesWithFrames.forEach(file => {
+        file.frames.forEach(frame => {
+          allFrames.push({
+            ...frame,
+            fileName: file.name,
+            fileKey: file.key
+          });
+        });
+      });
+
+      return {
+        projectId: projectId,
+        files: filesWithFrames,
+        frames: allFrames,
+        totalFrames: totalFrames
+      };
+      
+    } catch (error) {
+      throw new Error(`Failed to get project frames: ${error.message}`);
+    }
+  }
+
+  /**
    * Get projects for a specific team ID with file information
    * @param {string} teamId - The team ID from your Figma URL
    * @returns {Promise} - Formatted projects data with file counts
