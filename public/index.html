@@ -542,14 +542,10 @@
                 
                 let projectsHtml = '';
                 userData.projects.forEach(project => {
-                    const thumbnailHtml = project.thumbnail 
-                        ? `<img src="${project.thumbnail}" alt="${project.name} thumbnail" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>🎨</div>'">`
-                        : '<div class="no-image">🎨</div>';
-                    
                     projectsHtml += `
                         <div class="project-card" onclick="selectProject('${project.id}', '${project.name}')">
                             <div class="project-thumbnail">
-                                ${thumbnailHtml}
+                                <div class="no-image">🎨</div>
                             </div>
                             <div class="project-info">
                                 <h4>${project.name}</h4>

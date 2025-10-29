@@ -200,75 +200,101 @@ class FigmaAPI {
   }
 
   /**
-   * Get thumbnail for a file
+   * Sleep utility for rate limiting
+   * @param {number} ms - Milliseconds to sleep
+   */
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Get thumbnail for a file with rate limiting
    * @param {string} fileKey - The file key
    * @returns {Promise} - Thumbnail data
    */
   async getFileThumbnail(fileKey) {
     try {
+      // Add small delay to avoid rate limiting
+      await this.sleep(100);
+      
       const response = await axios.get(`${this.baseURL}/images/${fileKey}`, {
         headers: this.headers,
         params: {
           format: 'png',
-          scale: '0.5' // Smaller scale for thumbnails
+          scale: '0.25' // Even smaller scale for faster loading
         }
       });
       return response.data;
     } catch (error) {
-      // Don't throw error for thumbnails, just return null
-      console.warn(`Failed to get thumbnail for ${fileKey}: ${error.message}`);
+      // Silently handle thumbnail errors - they're not critical
+      if (error.response?.status === 429) {
+        console.warn(`Rate limited when getting thumbnail for ${fileKey}`);
+      } else if (error.response?.status === 400) {
+        console.warn(`Invalid file for thumbnail: ${fileKey}`);
+      }
       return null;
     }
   }
 
   /**
-   * Get projects for a specific team ID with thumbnails
+   * Get projects for a specific team ID with file information
    * @param {string} teamId - The team ID from your Figma URL
-   * @returns {Promise} - Formatted projects data with thumbnails
+   * @returns {Promise} - Formatted projects data with file counts
    */
   async getProjectsWithTeamId(teamId) {
     try {
       const userInfo = await this.getMe();
       const teamProjects = await this.getTeamProjects(teamId);
       
-      // Enhance projects with thumbnails
-      const enhancedProjects = await Promise.all(
-        (teamProjects.projects || []).map(async (project) => {
-          try {
-            // Get files in this project
-            const projectFiles = await this.getProjectFiles(project.id);
-            
-            // Get thumbnail from the first file if available
-            let thumbnail = null;
-            if (projectFiles.files && projectFiles.files.length > 0) {
-              const firstFile = projectFiles.files[0];
-              const thumbnailData = await this.getFileThumbnail(firstFile.key);
-              if (thumbnailData && thumbnailData.images) {
-                // Get the first thumbnail URL
-                const thumbnailUrls = Object.values(thumbnailData.images);
-                if (thumbnailUrls.length > 0) {
-                  thumbnail = thumbnailUrls[0];
-                }
+      // Get file information for each project (no thumbnails)
+      const enhancedProjects = [];
+      const projects = teamProjects.projects || [];
+      
+      console.log(`Getting file information for ${projects.length} projects...`);
+      
+      // Process projects in batches to avoid rate limiting
+      const batchSize = 5;
+      for (let i = 0; i < projects.length; i += batchSize) {
+        const batch = projects.slice(i, i + batchSize);
+        
+        const batchResults = await Promise.all(
+          batch.map(async (project, index) => {
+            try {
+              // Add small delay between projects
+              await this.sleep(index * 100);
+              
+              // Get files in this project
+              const projectFiles = await this.getProjectFiles(project.id);
+              
+              return {
+                ...project,
+                fileCount: projectFiles.files ? projectFiles.files.length : 0,
+                files: projectFiles.files || [],
+                thumbnail: null // No thumbnails
+              };
+            } catch (error) {
+              if (error.response?.status === 429) {
+                console.warn(`Rate limited for project ${project.name}, using basic info`);
+              } else {
+                console.warn(`Could not get files for project ${project.name}: ${error.message}`);
               }
+              return {
+                ...project,
+                fileCount: 0,
+                files: [],
+                thumbnail: null
+              };
             }
-            
-            return {
-              ...project,
-              thumbnail: thumbnail,
-              fileCount: projectFiles.files ? projectFiles.files.length : 0,
-              files: projectFiles.files || []
-            };
-          } catch (error) {
-            console.warn(`Could not enhance project ${project.name}: ${error.message}`);
-            return {
-              ...project,
-              thumbnail: null,
-              fileCount: 0,
-              files: []
-            };
-          }
-        })
-      );
+          })
+        );
+        
+        enhancedProjects.push(...batchResults);
+        
+        // Add delay between batches
+        if (i + batchSize < projects.length) {
+          await this.sleep(300);
+        }
+      }
       
       return {
         user: {
@@ -279,7 +305,7 @@ class FigmaAPI {
         },
         teamId: teamId,
         projects: enhancedProjects,
-        method: 'team-id',
+        method: 'team-id-with-files',
         success: true
       };
       

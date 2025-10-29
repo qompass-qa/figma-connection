@@ -42,7 +42,7 @@ app.post('/api/connect', async (req, res) => {
   try {
     const figma = new FigmaAPI(token);
     
-    // Get projects for specific team ID with thumbnails
+    // Get projects for specific team ID with file information
     const projects = await figma.getProjectsWithTeamId(teamId);
     
     res.json({
