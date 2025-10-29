@@ -23,7 +23,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Personal token connection endpoint
 app.post('/api/connect', async (req, res) => {
-  const { token } = req.body;
+  const { token, teamId } = req.body;
   
   if (!token) {
     return res.status(400).json({ 
@@ -34,7 +34,15 @@ app.post('/api/connect', async (req, res) => {
   
   try {
     const figma = new FigmaAPI(token);
-    const projects = await figma.getAllProjects();
+    
+    let projects;
+    if (teamId) {
+      // Get projects for specific team ID
+      projects = await figma.getProjectsWithTeamId(teamId);
+    } else {
+      // Try to get all projects (will show limitation message)
+      projects = await figma.getAllProjects();
+    }
     
     res.json({
       success: true,

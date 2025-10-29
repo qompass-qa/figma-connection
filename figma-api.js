@@ -168,7 +168,7 @@ class FigmaAPI {
   }
 
   /**
-   * Get all projects for a team (OAuth only)
+   * Get all projects for a team (Works with personal access tokens!)
    * @param {string} teamId - The team ID
    * @returns {Promise} - Projects data
    */
@@ -180,6 +180,34 @@ class FigmaAPI {
       return response.data;
     } catch (error) {
       throw new Error(`Failed to fetch team projects: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Get projects for a specific team ID (simple method for personal tokens)
+   * @param {string} teamId - The team ID from your Figma URL
+   * @returns {Promise} - Formatted projects data
+   */
+  async getProjectsWithTeamId(teamId) {
+    try {
+      const userInfo = await this.getMe();
+      const teamProjects = await this.getTeamProjects(teamId);
+      
+      return {
+        user: {
+          id: userInfo.id,
+          email: userInfo.email,
+          handle: userInfo.handle,
+          img_url: userInfo.img_url
+        },
+        teamId: teamId,
+        projects: teamProjects.projects || [],
+        method: 'team-id',
+        success: true
+      };
+      
+    } catch (error) {
+      throw new Error(`Failed to get projects for team ${teamId}: ${error.message}`);
     }
   }
 
@@ -260,8 +288,8 @@ class FigmaAPI {
       client_id: clientId,
       redirect_uri: redirectUri,
       state: state,
-      response_type: 'code',
-      scope: 'file_read'  // Required scope for accessing files and teams
+      response_type: 'code'
+      // Removing scope temporarily to test if it's required
     });
     
     return `https://www.figma.com/oauth?${params.toString()}`;

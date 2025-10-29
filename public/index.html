@@ -322,6 +322,17 @@
                             value=""
                         >
                     </div>
+                    <div class="input-group">
+                        <label for="teamId">Team ID</label>
+                        <input 
+                            type="text" 
+                            id="teamId" 
+                            placeholder="e.g., 1234567890 (get from your team URL)"
+                        >
+                        <small style="color: #666; font-size: 0.8rem; margin-top: 4px; display: block;">
+                            💡 Go to your team page in Figma and copy the number from the URL: figma.com/team/<strong>123456</strong>/TeamName
+                        </small>
+                    </div>
                     <button class="btn btn-primary" onclick="connectWithToken()">
                         Connect to Figma
                     </button>
@@ -401,6 +412,7 @@
 
         async function connectWithToken() {
             const token = document.getElementById('figmaToken').value.trim();
+            const teamId = document.getElementById('teamId').value.trim();
             
             if (!token) {
                 alert('Please enter your Figma access token');
@@ -410,12 +422,17 @@
             showLoading(true);
 
             try {
+                const requestBody = { token };
+                if (teamId) {
+                    requestBody.teamId = teamId;
+                }
+
                 const response = await fetch('/api/connect', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ token })
+                    body: JSON.stringify(requestBody)
                 });
 
                 const result = await response.json();
@@ -469,7 +486,25 @@
             // Display projects
             const projectsContainer = document.getElementById('projectsContainer');
             
-            if (userData.teams && userData.teams.length > 0) {
+            if (userData.projects && userData.projects.length > 0) {
+                let html = '<h2 style="color: #333; margin-bottom: 20px;">Your Projects</h2>';
+                
+                if (userData.teamId) {
+                    html += `<p style="color: #666; margin-bottom: 20px;">Team ID: ${userData.teamId}</p>`;
+                }
+                
+                userData.projects.forEach(project => {
+                    html += `
+                        <div class="project-card" onclick="selectProject('${project.id}', '${project.name}')">
+                            <h4>${project.name}</h4>
+                            <p>Project ID: ${project.id}</p>
+                        </div>
+                    `;
+                });
+                
+                projectsContainer.innerHTML = `<div class="projects-grid">${html}</div>`;
+            } else if (userData.teams && userData.teams.length > 0) {
+                // Handle OAuth format (teams with projects)
                 let html = '<h2 style="color: #333; margin-bottom: 20px;">Your Teams & Projects</h2>';
                 
                 userData.teams.forEach(team => {
@@ -499,8 +534,8 @@
                 projectsContainer.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #666;">
                         <h3>No projects found</h3>
-                        <p>This could be due to API limitations with personal tokens.</p>
-                        ${userData.limitation ? '<p>Try using OAuth authentication for full access.</p>' : ''}
+                        <p>${userData.limitation ? userData.limitation.message : 'Try providing a Team ID to access your team projects.'}</p>
+                        ${userData.limitation ? `<p><strong>Solution:</strong> ${userData.limitation.solution}</p>` : ''}
                     </div>
                 `;
             }
