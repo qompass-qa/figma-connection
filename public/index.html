@@ -472,12 +472,40 @@
       padding: 16px;
       background: #f0f9ff;
       border-radius: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      justify-content: space-between;
+    }
+
+    .user-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
     }
 
     .user-avatar {
       width: 48px;
       height: 48px;
       border-radius: 50%;
+    }
+
+    .switch-account-btn {
+      background: #f24e1e;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    .switch-account-btn:hover {
+      background: #d73d14;
     }
 
     @media (max-width: 768px) {
@@ -495,7 +523,7 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>🎨 Figma Projects</h1>
+      <h1>Figma API Connector</h1>
       <p>Connect to your Figma account and browse your projects</p>
     </div>
 
@@ -533,15 +561,16 @@
 
       </div>
 
-      <!-- Loading Section -->
-      <div class="loading" id="loadingSection">
-        <div class="spinner"></div>
-        <p>Connecting to Figma...</p>
-      </div>
-
       <!-- Projects Section -->
       <div class="projects-section" id="projectsSection">
         <div id="userInfo"></div>
+        
+        <!-- Loading Section -->
+        <div class="loading" id="loadingSection">
+          <div class="spinner"></div>
+          <p>Connecting to Figma...</p>
+        </div>
+        
         <div id="limitationNotice"></div>
         <div id="projectsContainer"></div>
 
@@ -590,6 +619,9 @@
         return;
       }
 
+      // Hide auth section and show loading in projects section
+      document.getElementById('authSection').style.display = 'none';
+      document.getElementById('projectsSection').style.display = 'block';
       showLoading(true);
 
       try {
@@ -624,15 +656,23 @@
       document.getElementById('authSection').style.display = 'none';
       document.getElementById('projectsSection').style.display = 'block';
 
-      // Display user info
+      // Scroll to top to show user info
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Display user info with switch account button
       const userInfo = document.getElementById('userInfo');
       userInfo.innerHTML = `
                 <div class="user-info">
-                    <img src="${userData.user.img_url}" alt="Profile" class="user-avatar" onerror="this.style.display='none'">
-                    <div>
-                        <h3>${userData.user.handle || userData.user.email}</h3>
-                        <p>Connected via Personal Token</p>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img src="${userData.user.img_url}" alt="Profile" class="user-avatar" onerror="this.style.display='none'">
+                        <div class="user-details">
+                            <h3>${userData.user.handle || userData.user.email}</h3>
+                            <p>Connected via Personal Token</p>
+                        </div>
                     </div>
+                    <button class="switch-account-btn" onclick="switchAccount()">
+                        🔄 Switch Account
+                    </button>
                 </div>
             `;
 
@@ -725,6 +765,14 @@
 
       selectedProject = { id: projectId, name: projectName };
 
+      // Immediately hide projects and show loading
+      document.getElementById('projectsContainer').style.display = 'none';
+      document.getElementById('loadingSection').style.display = 'block';
+      document.querySelector('#loadingSection p').textContent = `Loading frames from ${projectName}...`;
+
+      // Scroll to top to show loading message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
       // Load frames for this project
       await loadProjectFrames(projectId, projectName);
     }
@@ -732,11 +780,11 @@
     async function loadProjectFrames(projectId, projectName) {
       if (!currentToken) {
         alert('Please reconnect to Figma');
+        // Show projects again if reconnection needed
+        document.getElementById('projectsContainer').style.display = 'block';
+        document.getElementById('loadingSection').style.display = 'none';
         return;
       }
-
-      showLoading(true);
-      document.querySelector('#loadingSection p').textContent = `Loading frames from ${projectName}...`;
 
       try {
         const response = await fetch('/api/project-frames', {
@@ -760,14 +808,15 @@
       } catch (error) {
         console.error('Frames loading error:', error);
         alert(`Failed to load frames: ${error.message}`);
-      } finally {
-        showLoading(false);
-        document.querySelector('#loadingSection p').textContent = 'Connecting to Figma...';
+        // Show projects again on error
+        document.getElementById('loadingSection').style.display = 'none';
+        document.getElementById('projectsContainer').style.display = 'block';
       }
     }
 
     function displayFrames(framesData, projectName) {
-      // Hide projects and show frames
+      // Hide loading and projects, show frames
+      document.getElementById('loadingSection').style.display = 'none';
       document.getElementById('projectsContainer').style.display = 'none';
       document.getElementById('framesSection').style.display = 'block';
 
@@ -863,9 +912,33 @@
       });
     }
 
+    function switchAccount() {
+      // Clear current data
+      currentToken = null;
+      userData = null;
+      selectedProject = null;
+
+      // Reset form
+      document.getElementById('figmaToken').value = '';
+      document.getElementById('teamId').value = '';
+
+      // Hide projects section and show auth section
+      document.getElementById('projectsSection').style.display = 'none';
+      document.getElementById('framesSection').style.display = 'none';
+      document.getElementById('authSection').style.display = 'block';
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     function showLoading(show) {
       document.getElementById('loadingSection').style.display = show ? 'block' : 'none';
-      document.getElementById('authSection').style.display = show ? 'none' : 'block';
+      // Only show auth section when not loading and projects section is not visible
+      if (!show && document.getElementById('projectsSection').style.display === 'none') {
+        document.getElementById('authSection').style.display = 'block';
+      } else if (show) {
+        document.getElementById('authSection').style.display = 'none';
+      }
     }
   </script>
 </body>
