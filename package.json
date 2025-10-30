@@ -1,24 +1,54 @@
 {
-  "name": "figma-api",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon test.js",
-    "start": "node server.js",
-    "server": "nodemon server.js"
+  "name": "figma-browser",
+  "version": "1.0.2",
+  "description": "A graphical interface for browsing Figma projects and frames with personal access tokens",
+  "main": "lib/index.js",
+  "bin": {
+    "figma-browser": "./bin/figma-browser.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "scripts": {
+    "start": "node bin/figma-browser.js",
+    "dev": "nodemon bin/figma-browser.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "figma",
+    "api",
+    "gui",
+    "project",
+    "browser",
+    "frames",
+    "design-tools",
+    "figma-browser-cli"
+  ],
+  "author": "Henry Tanaka",
+  "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qompass-qa/figma-connection.git"
+  },
+  "homepage": "https://github.com/qompass-qa/figma-connection#readme",
+  "bugs": {
+    "url": "https://github.com/qompass-qa/figma-connection/issues"
+  },
   "dependencies": {
     "axios": "^1.13.0",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "mongodb": "^6.20.0",
+    "open": "^10.2.0"
+  },
+  "devDependencies": {
     "nodemon": "^3.1.10"
-  }
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "public/",
+    "README.md",
+    "LICENSE"
+  ]
 }
