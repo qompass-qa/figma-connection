@@ -1,7 +1,7 @@
 # FigmaAPI
 
 A lightweight Node.js wrapper for the [Figma REST API v1](https://www.figma.com/developers/api) built with `axios`.
-It supports both **personal access tokens** and **OAuth 2.0 authentication**, offering convenient methods for fetching files, frames, projects, teams, and thumbnails.
+It supports **personal access tokens** for fetching files, frames, projects, and teams.
 
 ---
 
@@ -11,7 +11,7 @@ It supports both **personal access tokens** and **OAuth 2.0 authentication**, of
 * Extract all frames with layout metadata
 * Retrieve frames, projects, and files for teams
 * Get user info and thumbnails
-* Support for both **personal tokens** and **OAuth**
+* Personal access token authentication
 * Handles rate limiting with built-in delays
 * Graceful error handling with detailed messages
 
@@ -33,34 +33,10 @@ import FigmaAPI from './FigmaAPI.js';
 
 ## 🔐 Authentication
 
-### 1. Using Personal Access Token
-
 Generate a personal access token from your [Figma Account Settings](https://www.figma.com/developers/api#access-tokens).
 
 ```js
 const figma = new FigmaAPI('YOUR_PERSONAL_ACCESS_TOKEN');
-```
-
-> Note: Personal access tokens cannot list teams or projects.
-> Use OAuth for full access.
-
----
-
-### 2. Using OAuth
-
-```js
-const authUrl = FigmaAPI.generateOAuthUrl(CLIENT_ID, REDIRECT_URI, STATE);
-console.log('Authorize here:', authUrl);
-
-// After redirect, exchange code for token:
-const tokenData = await FigmaAPI.exchangeCodeForToken(
-  code,
-  CLIENT_ID,
-  CLIENT_SECRET,
-  REDIRECT_URI
-);
-
-const figma = new FigmaAPI(tokenData.access_token);
 ```
 
 ---
@@ -96,7 +72,7 @@ console.log(thumbnails.images);
 
 ---
 
-### Get team projects (OAuth or PAT)
+### Get team projects
 
 ```js
 const projects = await figma.getTeamProjects('team-id');
@@ -133,16 +109,14 @@ console.log('Logged in as:', me.handle);
 | `getAllFrames(fileKey)`                          | Get file info + all frames              |
 | `getFrameThumbnails(fileKey, nodeIds, options)`  | Get thumbnail URLs for frames           |
 | `getMe()`                                        | Get current user info                   |
-| `getTeams()`                                     | Get teams (OAuth only)                  |
+| `getTeams()`                                     | Get teams                               |
 | `getTeamProjects(teamId)`                        | Get projects in a team                  |
 | `getProjectFiles(projectId)`                     | Get files in a project                  |
 | `getProjectFrames(projectId)`                    | Get frames from all project files       |
 | `getProjectsWithTeamId(teamId)`                  | Get projects + file info for a team     |
-| `getAllProjects()`                               | Get all teams and projects (OAuth only) |
+| `getAllProjects()`                               | Get all teams and projects              |
 | `getFileThumbnail(fileKey)`                      | Get a single thumbnail (with delay)     |
 | `sleep(ms)`                                      | Utility for delaying requests           |
-| `generateOAuthUrl(clientId, redirectUri, state)` | Build Figma OAuth authorization URL     |
-| `exchangeCodeForToken(...)`                      | Exchange OAuth code for access token    |
 
 ---
 
@@ -170,7 +144,7 @@ try {
 
 * Figma rate-limits requests (~60/min).
   This client includes `sleep()` delays to reduce throttling.
-* Some endpoints (teams/projects) require **OAuth tokens**.
+* Team endpoints require a personal access token with appropriate permissions.
 * `extractFrames()` collects layout-related metadata for analysis or export.
 
 ---

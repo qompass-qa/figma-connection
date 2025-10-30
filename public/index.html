@@ -1,722 +1,668 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Figma Projects Browser</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(45deg, #f24e1e, #ff7262);
-            padding: 40px;
-            text-align: center;
-            color: white;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1rem;
-        }
-
-        .content {
-            padding: 40px;
-        }
-
-        .auth-section {
-            margin-bottom: 40px;
-        }
-
-        .auth-methods {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .auth-method {
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .auth-method:hover {
-            border-color: #f24e1e;
-            transform: translateY(-2px);
-        }
-
-        .auth-method.active {
-            border-color: #f24e1e;
-            background: #fff5f4;
-        }
-
-        .auth-method h3 {
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 1.2rem;
-        }
-
-        .auth-method p {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 16px;
-        }
-
-        .auth-method .pros {
-            color: #10b981;
-            font-size: 0.8rem;
-            margin-bottom: 4px;
-        }
-
-        .auth-method .cons {
-            color: #ef4444;
-            font-size: 0.8rem;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #f24e1e;
-        }
-
-        .btn {
-            padding: 16px 32px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-
-        .btn-primary {
-            background: linear-gradient(45deg, #f24e1e, #ff7262);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(242, 78, 30, 0.3);
-        }
-
-        .btn-secondary {
-            background: #6366f1;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #4f46e5;
-            transform: translateY(-2px);
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #f24e1e;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .projects-section {
-            display: none;
-        }
-
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .project-card {
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .project-card:hover {
-            border-color: #f24e1e;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-        }
-
-        .project-card.selected {
-            border-color: #f24e1e;
-            background: #fff5f4;
-        }
-
-        .project-info {
-            padding: 20px;
-        }
-
-        .project-card h4 {
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 1.1rem;
-        }
-
-        .project-card p {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 4px;
-        }
-
-        .project-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .file-count {
-            color: #64748b;
-            font-size: 0.8rem;
-            background: #f1f5f9;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-
-        .frames-section {
-            display: none;
-            margin-top: 40px;
-            border-top: 2px solid #e2e8f0;
-            padding-top: 40px;
-        }
-
-        .frames-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .back-button {
-            background: #64748b;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .back-button:hover {
-            background: #475569;
-            transform: translateY(-1px);
-        }
-
-        .frames-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .frame-card {
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            padding: 16px;
-            background: white;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .frame-card:hover {
-            border-color: #f24e1e;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-        }
-
-        .frame-card.selected {
-            border-color: #f24e1e;
-            background: #fff5f4;
-        }
-
-        .files-summary {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-        }
-
-        .files-summary h4 {
-            margin: 0 0 15px 0;
-            color: #333;
-            font-size: 16px;
-        }
-
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .file-item:last-child {
-            border-bottom: none;
-        }
-
-        .file-name {
-            font-weight: 500;
-            color: #333;
-        }
-
-        .file-frames {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .frames-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .frame-header {
-            display: flex;
-            justify-content: between;
-            align-items: flex-start;
-            margin-bottom: 12px;
-        }
-
-        .frame-icon {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            margin-right: 12px;
-            flex-shrink: 0;
-        }
-
-        .frame-info h4 {
-            color: #333;
-            margin-bottom: 4px;
-            font-size: 1rem;
-        }
-
-        .frame-info p {
-            color: #666;
-            font-size: 0.85rem;
-            margin-bottom: 2px;
-        }
-
-        .frame-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .frame-tag {
-            background: #f1f5f9;
-            color: #64748b;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-        }
-
-        .files-summary {
-            background: #f8fafc;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-
-        .files-summary h4 {
-            color: #333;
-            margin-bottom: 12px;
-        }
-
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .file-item:last-child {
-            border-bottom: none;
-        }
-
-        .file-name {
-            color: #333;
-            font-weight: 500;
-        }
-
-        .file-frames {
-            color: #64748b;
-            font-size: 0.85rem;
-        }
-
-        .team-section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8fafc;
-            border-radius: 12px;
-        }
-
-        .team-section h3 {
-            color: #333;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .limitation-notice {
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 20px 0;
-        }
-
-        .limitation-notice h4 {
-            color: #92400e;
-            margin-bottom: 8px;
-        }
-
-        .limitation-notice p {
-            color: #78350f;
-            margin-bottom: 12px;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            padding: 16px;
-            background: #f0f9ff;
-            border-radius: 8px;
-        }
-
-        .user-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-        }
-
-        @media (max-width: 768px) {
-            .auth-methods {
-                grid-template-columns: 1fr;
-            }
-            
-            .projects-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Figma Projects Browser</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(45deg, #f24e1e, #ff7262);
+      padding: 40px;
+      text-align: center;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 1.1rem;
+    }
+
+    .content {
+      padding: 40px;
+    }
+
+    .auth-section {
+      margin-bottom: 40px;
+    }
+
+    .auth-methods {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .auth-method {
+      border: 2px solid #e1e5e9;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .auth-method:hover {
+      border-color: #f24e1e;
+      transform: translateY(-2px);
+    }
+
+    .auth-method.active {
+      border-color: #f24e1e;
+      background: #fff5f4;
+    }
+
+    .auth-method h3 {
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 1.2rem;
+    }
+
+    .auth-method p {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+
+    .auth-method .pros {
+      color: #10b981;
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+    }
+
+    .auth-method .cons {
+      color: #ef4444;
+      font-size: 0.8rem;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 16px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #f24e1e;
+    }
+
+    .btn {
+      padding: 16px 32px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: linear-gradient(45deg, #f24e1e, #ff7262);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(242, 78, 30, 0.3);
+    }
+
+    .btn-secondary {
+      background: #6366f1;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #4f46e5;
+      transform: translateY(-2px);
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #f24e1e;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .projects-section {
+      display: none;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .project-card {
+      border: 2px solid #e1e5e9;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .project-card:hover {
+      border-color: #f24e1e;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .project-card.selected {
+      border-color: #f24e1e;
+      background: #fff5f4;
+    }
+
+    .project-info {
+      padding: 20px;
+    }
+
+    .project-card h4 {
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+    }
+
+    .project-card p {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .project-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .file-count {
+      color: #64748b;
+      font-size: 0.8rem;
+      background: #f1f5f9;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .frames-section {
+      display: none;
+      margin-top: 40px;
+      border-top: 2px solid #e2e8f0;
+      padding-top: 40px;
+    }
+
+    .frames-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .back-button {
+      background: #64748b;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .back-button:hover {
+      background: #475569;
+      transform: translateY(-1px);
+    }
+
+    .frames-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .frame-card {
+      border: 2px solid #e1e5e9;
+      border-radius: 12px;
+      padding: 16px;
+      background: white;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .frame-card:hover {
+      border-color: #f24e1e;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .frame-card.selected {
+      border-color: #f24e1e;
+      background: #fff5f4;
+    }
+
+    .files-summary {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .files-summary h4 {
+      margin: 0 0 15px 0;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .file-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .file-item:last-child {
+      border-bottom: none;
+    }
+
+    .file-name {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .file-frames {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .frames-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .frame-header {
+      display: flex;
+      justify-content: between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .frame-icon {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .frame-info h4 {
+      color: #333;
+      margin-bottom: 4px;
+      font-size: 1rem;
+    }
+
+    .frame-info p {
+      color: #666;
+      font-size: 0.85rem;
+      margin-bottom: 2px;
+    }
+
+    .frame-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .frame-tag {
+      background: #f1f5f9;
+      color: #64748b;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+
+    .files-summary {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .files-summary h4 {
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    .file-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .file-item:last-child {
+      border-bottom: none;
+    }
+
+    .file-name {
+      color: #333;
+      font-weight: 500;
+    }
+
+    .file-frames {
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+
+    .team-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8fafc;
+      border-radius: 12px;
+    }
+
+    .team-section h3 {
+      color: #333;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .limitation-notice {
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+
+    .limitation-notice h4 {
+      color: #92400e;
+      margin-bottom: 8px;
+    }
+
+    .limitation-notice p {
+      color: #78350f;
+      margin-bottom: 12px;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: #f0f9ff;
+      border-radius: 8px;
+    }
+
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+    }
+
+    @media (max-width: 768px) {
+      .auth-methods {
+        grid-template-columns: 1fr;
+      }
+
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎨 Figma Projects</h1>
-            <p>Connect to your Figma account and browse your projects</p>
-        </div>
-
-        <div class="content">
-            <!-- Authentication Section -->
-            <div class="auth-section" id="authSection">
-                <h2 style="margin-bottom: 24px; color: #333;">Choose Authentication Method</h2>
-                
-                <div class="auth-methods">
-                    <div class="auth-method" id="personalTokenMethod" onclick="selectAuthMethod('personal')">
-                        <h3>🔑 Personal Access Token</h3>
-                        <p>Use your personal token for quick access</p>
-                        <div class="pros">✅ Quick and simple</div>
-                        <div class="cons">❌ Limited to accessible files only</div>
-                    </div>
-                    
-                    <div class="auth-method" id="oauthMethod" onclick="selectAuthMethod('oauth')">
-                        <h3>🚀 OAuth Login</h3>
-                        <p>Full access to all your teams and projects</p>
-                        <div class="pros">✅ Complete project browsing</div>
-                        <div class="pros">✅ Team access</div>
-                    </div>
-                </div>
-
-                <!-- Personal Token Input -->
-                <div id="tokenInput" style="display: none;">
-                    <div class="input-group">
-                        <label for="figmaToken">Figma Access Token</label>
-                        <input 
-                            type="password" 
-                            id="figmaToken" 
-                            placeholder="Paste your Figma access token here..."
-                            value=""
-                        >
-                    </div>
-                    <div class="input-group">
-                        <label for="teamId">Team ID *</label>
-                        <input 
-                            type="text" 
-                            id="teamId" 
-                            placeholder="e.g., 1234567890 (get from your team URL)"
-                            required
-                        >
-                        <small style="color: #666; font-size: 0.8rem; margin-top: 4px; display: block;">
-                            💡 Go to your team page in Figma and copy the number from the URL: figma.com/team/<strong>123456</strong>/TeamName
-                        </small>
-                    </div>
-                    <button class="btn btn-primary" onclick="connectWithToken()">
-                        Connect to Figma
-                    </button>
-                </div>
-
-                <!-- OAuth Button -->
-                <div id="oauthButton" style="display: none; text-align: center;">
-                    <a href="/auth/figma" class="btn btn-secondary">
-                        🔐 Login with Figma OAuth
-                    </a>
-                    <p style="margin-top: 12px; color: #666; font-size: 0.9rem;">
-                        You'll be redirected to Figma to authorize access
-                    </p>
-                </div>
-            </div>
-
-            <!-- Loading Section -->
-            <div class="loading" id="loadingSection">
-                <div class="spinner"></div>
-                <p>Connecting to Figma...</p>
-            </div>
-
-            <!-- Projects Section -->
-            <div class="projects-section" id="projectsSection">
-                <div id="userInfo"></div>
-                <div id="limitationNotice"></div>
-                <div id="projectsContainer"></div>
-                
-                <!-- Frames Section -->
-                <div class="frames-section" id="framesSection">
-                    <div class="frames-header">
-                        <div>
-                            <h2 id="selectedProjectName" style="color: #333; margin-bottom: 8px;"></h2>
-                            <p id="selectedProjectInfo" style="color: #666;"></p>
-                        </div>
-                        <button class="back-button" onclick="backToProjects()">
-                            ← Back to Projects
-                        </button>
-                    </div>
-                    
-                    <div id="filesSummary"></div>
-                    <div id="framesContainer"></div>
-                </div>
-            </div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>🎨 Figma Projects</h1>
+      <p>Connect to your Figma account and browse your projects</p>
     </div>
 
-    <script>
-        let selectedAuthMethod = null;
-        let selectedProject = null;
-        let userData = null;
-        let currentToken = null;
+    <div class="content">
+      <!-- Authentication Section -->
+      <div class="auth-section" id="authSection">
+        <div class="auth-info">
+          <div class="auth-method active" id="personalTokenMethod" style="margin-bottom: 2rem;">
+            <h3>🔑 Personal Access Token</h3>
+            <p>Connect using your Figma personal access token</p>
+            <div class="pros">✅ Direct access to your projects</div>
+            <div class="pros">✅ Simple and secure</div>
+          </div>
+        </div>
 
-        // Check for OAuth callback on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const oauthSuccess = urlParams.get('oauth_success');
-            const data = urlParams.get('data');
-            const error = urlParams.get('error');
+        <!-- Personal Token Input -->
+        <div id="tokenInput">
+          <div class="input-group">
+            <label for="figmaToken">Figma Access Token</label>
+            <input type="password" id="figmaToken" placeholder="Paste your Figma access token here..." value="">
+          </div>
+          <div class="input-group">
+            <label for="teamId">Team ID</label>
+            <input type="text" id="teamId" placeholder="e.g., 1234567890 (get from your team URL)" required>
+            <small style="color: #666; font-size: 0.8rem; margin-top: 4px; display: block;">
+              💡 Go to your team page in Figma and copy the number from the URL:
+              figma.com/team/<strong>123456</strong>/TeamName
+            </small>
+          </div>
+          <button class="btn btn-primary" onclick="connectWithToken()">
+            Connect to Figma
+          </button>
+        </div>
 
-            if (error) {
-                alert(`Authentication error: ${decodeURIComponent(error)}`);
-                return;
-            }
 
-            if (oauthSuccess && data) {
-                try {
-                    const result = JSON.parse(decodeURIComponent(data));
-                    displayProjects(result);
-                    // Clean URL
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                } catch (e) {
-                    console.error('Failed to parse OAuth data:', e);
-                }
-            }
+      </div>
+
+      <!-- Loading Section -->
+      <div class="loading" id="loadingSection">
+        <div class="spinner"></div>
+        <p>Connecting to Figma...</p>
+      </div>
+
+      <!-- Projects Section -->
+      <div class="projects-section" id="projectsSection">
+        <div id="userInfo"></div>
+        <div id="limitationNotice"></div>
+        <div id="projectsContainer"></div>
+
+        <!-- Frames Section -->
+        <div class="frames-section" id="framesSection">
+          <div class="frames-header">
+            <div>
+              <h2 id="selectedProjectName" style="color: #333; margin-bottom: 8px;"></h2>
+              <p id="selectedProjectInfo" style="color: #666;"></p>
+            </div>
+            <button class="back-button" onclick="backToProjects()">
+              ← Back to Projects
+            </button>
+          </div>
+
+          <div id="filesSummary"></div>
+          <div id="framesContainer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedProject = null;
+    let userData = null;
+    let currentToken = null;
+
+    // Initialize page
+    window.addEventListener('DOMContentLoaded', () => {
+      // Token input is always visible now
+    });
+
+
+
+    async function connectWithToken() {
+      const token = document.getElementById('figmaToken').value.trim();
+      const teamId = document.getElementById('teamId').value.trim();
+
+      if (!token) {
+        alert('Please enter your Figma access token');
+        return;
+      }
+
+      if (!teamId) {
+        alert('Please enter your Team ID');
+        return;
+      }
+
+      showLoading(true);
+
+      try {
+        const response = await fetch('/api/connect', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token, teamId })
         });
 
-        function selectAuthMethod(method) {
-            selectedAuthMethod = method;
-            
-            // Update UI
-            document.querySelectorAll('.auth-method').forEach(el => el.classList.remove('active'));
-            document.getElementById('tokenInput').style.display = 'none';
-            document.getElementById('oauthButton').style.display = 'none';
-            
-            if (method === 'personal') {
-                document.getElementById('personalTokenMethod').classList.add('active');
-                document.getElementById('tokenInput').style.display = 'block';
-            } else if (method === 'oauth') {
-                document.getElementById('oauthMethod').classList.add('active');
-                document.getElementById('oauthButton').style.display = 'block';
-            }
+        const result = await response.json();
+
+        if (result.success) {
+          currentToken = token; // Store token for frame requests
+          displayProjects(result);
+        } else {
+          throw new Error(result.error || 'Failed to connect to Figma');
         }
+      } catch (error) {
+        console.error('Connection error:', error);
+        alert(`Failed to connect: ${error.message}`);
+      } finally {
+        showLoading(false);
+      }
+    }
 
-        async function connectWithToken() {
-            const token = document.getElementById('figmaToken').value.trim();
-            const teamId = document.getElementById('teamId').value.trim();
-            
-            if (!token) {
-                alert('Please enter your Figma access token');
-                return;
-            }
+    function displayProjects(result) {
+      userData = result.data;
 
-            if (!teamId) {
-                alert('Please enter your Team ID');
-                return;
-            }
+      // Hide auth section and show projects
+      document.getElementById('authSection').style.display = 'none';
+      document.getElementById('projectsSection').style.display = 'block';
 
-            showLoading(true);
-
-            try {
-                const response = await fetch('/api/connect', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ token, teamId })
-                });
-
-                const result = await response.json();
-                
-                if (result.success) {
-                    currentToken = token; // Store token for frame requests
-                    displayProjects(result);
-                } else {
-                    throw new Error(result.error || 'Failed to connect to Figma');
-                }
-            } catch (error) {
-                console.error('Connection error:', error);
-                alert(`Failed to connect: ${error.message}`);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function displayProjects(result) {
-            userData = result.data;
-            
-            // Hide auth section and show projects
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('projectsSection').style.display = 'block';
-
-            // Display user info
-            const userInfo = document.getElementById('userInfo');
-            userInfo.innerHTML = `
+      // Display user info
+      const userInfo = document.getElementById('userInfo');
+      userInfo.innerHTML = `
                 <div class="user-info">
                     <img src="${userData.user.img_url}" alt="Profile" class="user-avatar" onerror="this.style.display='none'">
                     <div>
                         <h3>${userData.user.handle || userData.user.email}</h3>
-                        <p>Connected via ${result.tokenType === 'oauth' ? 'OAuth' : 'Personal Token'}</p>
+                        <p>Connected via Personal Token</p>
                     </div>
                 </div>
             `;
 
-            // Show limitation notice for personal tokens
-            const limitationNotice = document.getElementById('limitationNotice');
-            if (userData.limitation) {
-                limitationNotice.innerHTML = `
+      // Show limitation notice for personal tokens
+      const limitationNotice = document.getElementById('limitationNotice');
+      if (userData.limitation) {
+        limitationNotice.innerHTML = `
                     <div class="limitation-notice">
                         <h4>${userData.limitation.title}</h4>
                         <p>${userData.limitation.message}</p>
                         <p><strong>Solution:</strong> ${userData.limitation.solution}</p>
                     </div>
                 `;
-            } else {
-                limitationNotice.innerHTML = '';
-            }
+      } else {
+        limitationNotice.innerHTML = '';
+      }
 
-            // Display projects
-            const projectsContainer = document.getElementById('projectsContainer');
-            
-            if (userData.projects && userData.projects.length > 0) {
-                let html = '<h2 style="color: #333; margin-bottom: 20px;">Your Projects</h2>';
-                
-                if (userData.teamId) {
-                    html += `<p style="color: #666; margin-bottom: 20px;">Team ID: ${userData.teamId}</p>`;
-                }
-                
-                let projectsHtml = '';
-                userData.projects.forEach(project => {
-                    projectsHtml += `
+      // Display projects
+      const projectsContainer = document.getElementById('projectsContainer');
+
+      if (userData.projects && userData.projects.length > 0) {
+        let html = '<h2 style="color: #333; margin-bottom: 20px;">Your Projects</h2>';
+
+        if (userData.teamId) {
+          html += `<p style="color: #666; margin-bottom: 20px;">Team ID: ${userData.teamId}</p>`;
+        }
+
+        let projectsHtml = '';
+        userData.projects.forEach(project => {
+          projectsHtml += `
                         <div class="project-card" onclick="selectProject('${project.id}', '${project.name}')">
                             <div class="project-info">
                                 <h4>${project.name}</h4>
@@ -727,142 +673,142 @@
                             </div>
                         </div>
                     `;
-                });
-                
-                projectsContainer.innerHTML = html + `<div class="projects-grid">${projectsHtml}</div>`;
-            } else if (userData.teams && userData.teams.length > 0) {
-                // Handle OAuth format (teams with projects)
-                let html = '<h2 style="color: #333; margin-bottom: 20px;">Your Teams & Projects</h2>';
-                
-                userData.teams.forEach(team => {
-                    html += `
+        });
+
+        projectsContainer.innerHTML = html + `<div class="projects-grid">${projectsHtml}</div>`;
+      } else if (userData.teams && userData.teams.length > 0) {
+        // Handle team format (teams with projects)
+        let html = '<h2 style="color: #333; margin-bottom: 20px;">Your Teams & Projects</h2>';
+
+        userData.teams.forEach(team => {
+          html += `
                         <div class="team-section">
                             <h3>👥 ${team.teamName}</h3>
                             <div class="projects-grid">
                     `;
-                    
-                    team.projects.forEach(project => {
-                        html += `
+
+          team.projects.forEach(project => {
+            html += `
                             <div class="project-card" onclick="selectProject('${project.id}', '${project.name}')">
                                 <h4>${project.name}</h4>
                                 <p>Project ID: ${project.id}</p>
                             </div>
                         `;
-                    });
-                    
-                    html += `
+          });
+
+          html += `
                             </div>
                         </div>
                     `;
-                });
-                
-                projectsContainer.innerHTML = html;
-            } else {
-                projectsContainer.innerHTML = `
+        });
+
+        projectsContainer.innerHTML = html;
+      } else {
+        projectsContainer.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #666;">
                         <h3>No projects found</h3>
                         <p>${userData.limitation ? userData.limitation.message : 'Try providing a Team ID to access your team projects.'}</p>
                         ${userData.limitation ? `<p><strong>Solution:</strong> ${userData.limitation.solution}</p>` : ''}
                     </div>
                 `;
-            }
+      }
+    }
+
+    async function selectProject(projectId, projectName) {
+      // Remove previous selection
+      document.querySelectorAll('.project-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+
+      // Mark new selection
+      event.target.closest('.project-card').classList.add('selected');
+
+      selectedProject = { id: projectId, name: projectName };
+
+      // Load frames for this project
+      await loadProjectFrames(projectId, projectName);
+    }
+
+    async function loadProjectFrames(projectId, projectName) {
+      if (!currentToken) {
+        alert('Please reconnect to Figma');
+        return;
+      }
+
+      showLoading(true);
+      document.querySelector('#loadingSection p').textContent = `Loading frames from ${projectName}...`;
+
+      try {
+        const response = await fetch('/api/project-frames', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token: currentToken,
+            projectId: projectId
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          displayFrames(result.data, projectName);
+        } else {
+          throw new Error(result.error || 'Failed to load project frames');
         }
+      } catch (error) {
+        console.error('Frames loading error:', error);
+        alert(`Failed to load frames: ${error.message}`);
+      } finally {
+        showLoading(false);
+        document.querySelector('#loadingSection p').textContent = 'Connecting to Figma...';
+      }
+    }
 
-        async function selectProject(projectId, projectName) {
-            // Remove previous selection
-            document.querySelectorAll('.project-card').forEach(card => {
-                card.classList.remove('selected');
-            });
+    function displayFrames(framesData, projectName) {
+      // Hide projects and show frames
+      document.getElementById('projectsContainer').style.display = 'none';
+      document.getElementById('framesSection').style.display = 'block';
 
-            // Mark new selection
-            event.target.closest('.project-card').classList.add('selected');
-            
-            selectedProject = { id: projectId, name: projectName };
-            
-            // Load frames for this project
-            await loadProjectFrames(projectId, projectName);
-        }
+      // Update header
+      document.getElementById('selectedProjectName').textContent = projectName;
+      document.getElementById('selectedProjectInfo').textContent =
+        `${framesData.totalFrames} frames across ${framesData.files.length} files`;
 
-        async function loadProjectFrames(projectId, projectName) {
-            if (!currentToken) {
-                alert('Please reconnect to Figma');
-                return;
-            }
-
-            showLoading(true);
-            document.querySelector('#loadingSection p').textContent = `Loading frames from ${projectName}...`;
-
-            try {
-                const response = await fetch('/api/project-frames', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        token: currentToken, 
-                        projectId: projectId 
-                    })
-                });
-
-                const result = await response.json();
-                
-                if (result.success) {
-                    displayFrames(result.data, projectName);
-                } else {
-                    throw new Error(result.error || 'Failed to load project frames');
-                }
-            } catch (error) {
-                console.error('Frames loading error:', error);
-                alert(`Failed to load frames: ${error.message}`);
-            } finally {
-                showLoading(false);
-                document.querySelector('#loadingSection p').textContent = 'Connecting to Figma...';
-            }
-        }
-
-        function displayFrames(framesData, projectName) {
-            // Hide projects and show frames
-            document.getElementById('projectsContainer').style.display = 'none';
-            document.getElementById('framesSection').style.display = 'block';
-
-            // Update header
-            document.getElementById('selectedProjectName').textContent = projectName;
-            document.getElementById('selectedProjectInfo').textContent = 
-                `${framesData.totalFrames} frames across ${framesData.files.length} files`;
-
-            // Display files summary
-            const filesSummary = document.getElementById('filesSummary');
-            if (framesData.files.length > 0) {
-                let filesHtml = '<h4>📁 Files in this project:</h4>';
-                framesData.files.forEach(file => {
-                    const status = file.error ? '❌' : '✅';
-                    const frameText = file.frameCount === 1 ? 'frame' : 'frames';
-                    filesHtml += `
+      // Display files summary
+      const filesSummary = document.getElementById('filesSummary');
+      if (framesData.files.length > 0) {
+        let filesHtml = '<h4>📁 Files in this project:</h4>';
+        framesData.files.forEach(file => {
+          const status = file.error ? '❌' : '✅';
+          const frameText = file.frameCount === 1 ? 'frame' : 'frames';
+          filesHtml += `
                         <div class="file-item">
                             <span class="file-name">${status} ${file.name}</span>
                             <span class="file-frames">${file.frameCount} ${frameText}</span>
                         </div>
                     `;
-                });
-                filesSummary.innerHTML = `<div class="files-summary">${filesHtml}</div>`;
-            } else {
-                filesSummary.innerHTML = `
+        });
+        filesSummary.innerHTML = `<div class="files-summary">${filesHtml}</div>`;
+      } else {
+        filesSummary.innerHTML = `
                     <div class="files-summary">
                         <p style="color: #666;">No files found in this project.</p>
                     </div>
                 `;
-            }
+      }
 
-            // Display frames
-            const framesContainer = document.getElementById('framesContainer');
-            if (framesData.frames.length > 0) {
-                let framesHtml = '<h3 style="color: #333; margin-bottom: 20px;">🎨 Frames</h3><div class="frames-grid">';
-                
-                framesData.frames.forEach(frame => {
-                    const width = frame.absoluteBoundingBox ? Math.round(frame.absoluteBoundingBox.width) : '?';
-                    const height = frame.absoluteBoundingBox ? Math.round(frame.absoluteBoundingBox.height) : '?';
-                    
-                    framesHtml += `
+      // Display frames
+      const framesContainer = document.getElementById('framesContainer');
+      if (framesData.frames.length > 0) {
+        let framesHtml = '<h3 style="color: #333; margin-bottom: 20px;">🎨 Frames</h3><div class="frames-grid">';
+
+        framesData.frames.forEach(frame => {
+          const width = frame.absoluteBoundingBox ? Math.round(frame.absoluteBoundingBox.width) : '?';
+          const height = frame.absoluteBoundingBox ? Math.round(frame.absoluteBoundingBox.height) : '?';
+
+          framesHtml += `
                         <div class="frame-card" onclick="selectFrame('${frame.id}', '${frame.name}')">
                             <div class="frame-header">
                                 <div class="frame-icon">🖼️</div>
@@ -879,48 +825,49 @@
                             </div>
                         </div>
                     `;
-                });
-                
-                framesHtml += '</div>';
-                framesContainer.innerHTML = framesHtml;
-            } else {
-                framesContainer.innerHTML = `
+        });
+
+        framesHtml += '</div>';
+        framesContainer.innerHTML = framesHtml;
+      } else {
+        framesContainer.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #666;">
                         <h3>No frames found</h3>
                         <p>This project doesn't contain any frames, or they couldn't be loaded.</p>
                     </div>
                 `;
-            }
-        }
+      }
+    }
 
-        function selectFrame(frameId, frameName) {
-            // Remove previous selection
-            document.querySelectorAll('.frame-card').forEach(card => {
-                card.classList.remove('selected');
-            });
+    function selectFrame(frameId, frameName) {
+      // Remove previous selection
+      document.querySelectorAll('.frame-card').forEach(card => {
+        card.classList.remove('selected');
+      });
 
-            // Mark new selection
-            event.target.closest('.frame-card').classList.add('selected');
-            
-            console.log('Selected frame:', { id: frameId, name: frameName });
-            alert(`Selected frame: ${frameName}\nFrame ID: ${frameId}`);
-        }
+      // Mark new selection
+      event.target.closest('.frame-card').classList.add('selected');
 
-        function backToProjects() {
-            // Hide frames and show projects
-            document.getElementById('framesSection').style.display = 'none';
-            document.getElementById('projectsContainer').style.display = 'block';
-            
-            // Clear frame selection
-            document.querySelectorAll('.frame-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-        }
+      console.log('Selected frame:', { id: frameId, name: frameName });
+      alert(`Selected frame: ${frameName}\nFrame ID: ${frameId}`);
+    }
 
-        function showLoading(show) {
-            document.getElementById('loadingSection').style.display = show ? 'block' : 'none';
-            document.getElementById('authSection').style.display = show ? 'none' : 'block';
-        }
-    </script>
+    function backToProjects() {
+      // Hide frames and show projects
+      document.getElementById('framesSection').style.display = 'none';
+      document.getElementById('projectsContainer').style.display = 'block';
+
+      // Clear frame selection
+      document.querySelectorAll('.frame-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+    }
+
+    function showLoading(show) {
+      document.getElementById('loadingSection').style.display = show ? 'block' : 'none';
+      document.getElementById('authSection').style.display = show ? 'none' : 'block';
+    }
+  </script>
 </body>
+
 </html>

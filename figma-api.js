@@ -153,7 +153,7 @@ class FigmaAPI {
   }
 
   /**
-   * Get all teams for the authenticated user (OAuth only)
+   * Get all teams for the authenticated user
    * @returns {Promise} - Teams data
    */
   async getTeams() {
@@ -411,7 +411,7 @@ class FigmaAPI {
   }
 
   /**
-   * Get all projects from all teams (OAuth only)
+   * Get all projects from all teams
    * @returns {Promise} - All projects organized by team
    */
   async getAllProjects() {
@@ -420,7 +420,7 @@ class FigmaAPI {
       const allProjects = [];
       
       try {
-        // Try to get teams (this will work with OAuth tokens)
+        // Try to get teams
         const teamsResponse = await this.getTeams();
         
         if (teamsResponse.teams && teamsResponse.teams.length > 0) {
@@ -453,7 +453,7 @@ class FigmaAPI {
         };
         
       } catch (error) {
-        // This means we're using a personal token, not OAuth
+        // No teams accessible with this token
         return {
           user: {
             id: userInfo.id,
@@ -463,9 +463,9 @@ class FigmaAPI {
           },
           teams: [],
           limitation: {
-            title: "Personal Access Token Limitation",
-            message: "Personal access tokens cannot access team/project endpoints. To browse your teams and projects, you need to use OAuth authentication.",
-            solution: "Click 'Login with OAuth' below to get full access to your teams and projects."
+            title: "No Teams Access",
+            message: "This token doesn't have access to team/project endpoints.",
+            solution: "Ensure your personal access token has the necessary permissions."
           }
         };
       }
@@ -475,48 +475,7 @@ class FigmaAPI {
     }
   }
 
-  /**
-   * Generate OAuth authorization URL
-   * @param {string} clientId - OAuth client ID
-   * @param {string} redirectUri - Redirect URI
-   * @param {string} state - Random state for security
-   * @returns {string} - Authorization URL
-   */
-  static generateOAuthUrl(clientId, redirectUri, state) {
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      state: state,
-      response_type: 'code'
-      // Removing scope temporarily to test if it's required
-    });
-    
-    return `https://www.figma.com/oauth?${params.toString()}`;
-  }
 
-  /**
-   * Exchange OAuth code for access token
-   * @param {string} code - Authorization code
-   * @param {string} clientId - OAuth client ID
-   * @param {string} clientSecret - OAuth client secret
-   * @param {string} redirectUri - Redirect URI
-   * @returns {Promise} - Token data
-   */
-  static async exchangeCodeForToken(code, clientId, clientSecret, redirectUri) {
-    try {
-      const response = await axios.post('https://www.figma.com/api/oauth/token', {
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: redirectUri,
-        code: code,
-        grant_type: 'authorization_code'
-      });
-      
-      return response.data;
-    } catch (error) {
-      throw new Error(`Failed to exchange code for token: ${error.response?.data?.message || error.message}`);
-    }
-  }
 }
 
 export default FigmaAPI;
