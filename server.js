@@ -22,7 +22,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.post('/api/connect', async (req, res) => {
   const { token, teamId } = req.body;
   
+  console.log('🔗 /api/connect called with teamId:', teamId);
+  
   if (!token) {
+    console.log('❌ No token provided');
     return res.status(400).json({ 
       error: 'Token is required',
       success: false 
@@ -30,6 +33,7 @@ app.post('/api/connect', async (req, res) => {
   }
   
   if (!teamId) {
+    console.log('❌ No teamId provided');
     return res.status(400).json({ 
       error: 'Team ID is required',
       success: false 
@@ -37,10 +41,12 @@ app.post('/api/connect', async (req, res) => {
   }
   
   try {
+    console.log('🚀 Creating FigmaAPI instance and fetching projects...');
     const figma = new FigmaAPI(token);
     
     // Get projects for specific team ID with file information
     const projects = await figma.getProjectsWithTeamId(teamId);
+    console.log('✅ Projects fetched successfully:', projects?.projects?.length || 0, 'projects');
     
     res.json({
       success: true,
@@ -48,7 +54,7 @@ app.post('/api/connect', async (req, res) => {
       tokenType: 'personal'
     });
   } catch (error) {
-    console.error('Figma API Error:', error.message);
+    console.error('❌ Figma API Error:', error.message);
     res.status(500).json({ 
       error: error.message,
       success: false 

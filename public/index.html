@@ -619,12 +619,19 @@
         return;
       }
 
+      // Ensure clean state before connecting
+      selectedProject = null;
+      userData = null;
+
+      console.log('Starting connection attempt...');
+      
       // Hide auth section and show loading in projects section
       document.getElementById('authSection').style.display = 'none';
       document.getElementById('projectsSection').style.display = 'block';
       showLoading(true);
 
       try {
+        console.log('Sending API request to /api/connect');
         const response = await fetch('/api/connect', {
           method: 'POST',
           headers: {
@@ -633,28 +640,54 @@
           body: JSON.stringify({ token, teamId })
         });
 
+        console.log('API response received:', response.status);
         const result = await response.json();
+        console.log('API result parsed:', result);
 
         if (result.success) {
+          console.log('Connection successful, storing token and displaying projects');
           currentToken = token; // Store token for frame requests
+          showLoading(false); // Hide loading before displaying projects
           displayProjects(result);
         } else {
+          console.error('API returned error:', result.error);
           throw new Error(result.error || 'Failed to connect to Figma');
         }
       } catch (error) {
         console.error('Connection error:', error);
         alert(`Failed to connect: ${error.message}`);
-      } finally {
+        // Show auth section again on error
         showLoading(false);
+        document.getElementById('projectsSection').style.display = 'none';
+        document.getElementById('authSection').style.display = 'block';
       }
     }
 
     function displayProjects(result) {
+      console.log('displayProjects called with:', result);
       userData = result.data;
 
+      // Check if DOM elements exist
+      const authSection = document.getElementById('authSection');
+      const projectsSection = document.getElementById('projectsSection');
+      const projectsContainer = document.getElementById('projectsContainer');
+      
+      console.log('DOM elements check:');
+      console.log('- authSection exists:', !!authSection);
+      console.log('- projectsSection exists:', !!projectsSection);
+      console.log('- projectsContainer exists:', !!projectsContainer);
+
+      // Ensure we start with a completely clean slate
+      selectedProject = null;
+      document.querySelectorAll('.selected').forEach(element => {
+        element.classList.remove('selected');
+      });
+
       // Hide auth section and show projects
-      document.getElementById('authSection').style.display = 'none';
-      document.getElementById('projectsSection').style.display = 'block';
+      if (authSection) authSection.style.display = 'none';
+      if (projectsSection) projectsSection.style.display = 'block';
+      
+      console.log('Projects section visibility set to block');
 
       // Scroll to top to show user info
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -691,9 +724,11 @@
       }
 
       // Display projects
-      const projectsContainer = document.getElementById('projectsContainer');
+      console.log('userData.projects:', userData.projects?.length || 0, 'projects');
+      console.log('userData.teams:', userData.teams?.length || 0, 'teams');
 
       if (userData.projects && userData.projects.length > 0) {
+        console.log('Displaying projects format');
         let html = '<h2 style="color: #333; margin-bottom: 20px;">Your Projects</h2>';
 
         if (userData.teamId) {
@@ -715,9 +750,16 @@
                     `;
         });
 
-        projectsContainer.innerHTML = html + `<div class="projects-grid">${projectsHtml}</div>`;
+        if (projectsContainer) {
+          projectsContainer.innerHTML = html + `<div class="projects-grid">${projectsHtml}</div>`;
+          projectsContainer.style.display = 'block';
+          console.log('✅ Projects HTML set to projectsContainer');
+        } else {
+          console.error('❌ projectsContainer element not found!');
+        }
       } else if (userData.teams && userData.teams.length > 0) {
         // Handle team format (teams with projects)
+        console.log('Displaying teams format');
         let html = '<h2 style="color: #333; margin-bottom: 20px;">Your Teams & Projects</h2>';
 
         userData.teams.forEach(team => {
@@ -742,19 +784,37 @@
                     `;
         });
 
-        projectsContainer.innerHTML = html;
+        if (projectsContainer) {
+          projectsContainer.innerHTML = html;
+          projectsContainer.style.display = 'block';
+          console.log('✅ Teams HTML set to projectsContainer');
+        } else {
+          console.error('❌ projectsContainer element not found for teams!');
+        }
       } else {
-        projectsContainer.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #666;">
-                        <h3>No projects found</h3>
-                        <p>${userData.limitation ? userData.limitation.message : 'Try providing a Team ID to access your team projects.'}</p>
-                        ${userData.limitation ? `<p><strong>Solution:</strong> ${userData.limitation.solution}</p>` : ''}
-                    </div>
-                `;
+        if (projectsContainer) {
+          projectsContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #666;">
+                            <h3>No projects found</h3>
+                            <p>${userData.limitation ? userData.limitation.message : 'Try providing a Team ID to access your team projects.'}</p>
+                            ${userData.limitation ? `<p><strong>Solution:</strong> ${userData.limitation.solution}</p>` : ''}
+                        </div>
+                    `;
+          projectsContainer.style.display = 'block';
+          console.log('✅ No projects message set to projectsContainer');
+        } else {
+          console.error('❌ projectsContainer element not found for no projects message!');
+        }
       }
     }
 
     async function selectProject(projectId, projectName) {
+      // Check if we have a valid token
+      if (!currentToken) {
+        alert('Please reconnect to Figma first');
+        return;
+      }
+
       // Remove previous selection
       document.querySelectorAll('.project-card').forEach(card => {
         card.classList.remove('selected');
@@ -913,22 +973,62 @@
     }
 
     function switchAccount() {
-      // Clear current data
+      console.log('🔄 Switching account - clearing all session data');
+      
+      // Force complete session reset
       currentToken = null;
       userData = null;
       selectedProject = null;
 
-      // Reset form
+      // Clear all form inputs
       document.getElementById('figmaToken').value = '';
       document.getElementById('teamId').value = '';
 
-      // Hide projects section and show auth section
-      document.getElementById('projectsSection').style.display = 'none';
-      document.getElementById('framesSection').style.display = 'none';
-      document.getElementById('authSection').style.display = 'block';
+      // Clear all containers content but keep the containers
+      const projectsContainer = document.getElementById('projectsContainer');
+      const framesContainer = document.getElementById('framesContainer');
+      const userInfo = document.getElementById('userInfo');
+      const limitationNotice = document.getElementById('limitationNotice');
+      const filesSummary = document.getElementById('filesSummary');
 
-      // Scroll to top
+      if (projectsContainer) projectsContainer.innerHTML = '';
+      if (framesContainer) framesContainer.innerHTML = '';
+      if (userInfo) userInfo.innerHTML = '';
+      if (limitationNotice) limitationNotice.innerHTML = '';
+      if (filesSummary) filesSummary.innerHTML = '';
+
+      // Ensure containers are properly displayed
+      if (projectsContainer) projectsContainer.style.display = 'block';
+
+      // Remove all selected states from any elements
+      document.querySelectorAll('.selected').forEach(element => {
+        element.classList.remove('selected');
+      });
+
+      // Reset loading message
+      const loadingText = document.querySelector('#loadingSection p');
+      if (loadingText) loadingText.textContent = 'Connecting to Figma...';
+
+      // Reset all sections to initial state
+      const authSection = document.getElementById('authSection');
+      const projectsSection = document.getElementById('projectsSection');
+      const framesSection = document.getElementById('framesSection');
+      const loadingSection = document.getElementById('loadingSection');
+
+      if (authSection) authSection.style.display = 'block';
+      if (projectsSection) projectsSection.style.display = 'none';
+      if (framesSection) framesSection.style.display = 'none';
+      if (loadingSection) loadingSection.style.display = 'none';
+
+      // Clear any URL parameters that might be causing issues
+      if (window.location.search) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      // Force page to reset to initial state
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      console.log('✅ Session reset complete - all containers preserved but cleared');
     }
 
     function showLoading(show) {
